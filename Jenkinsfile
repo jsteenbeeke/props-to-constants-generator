@@ -11,7 +11,7 @@ pipeline {
 
     triggers {
         pollSCM('H/5 * * * *')
-        upstream(upstreamProjects: 'andalite/master,lux,vavr-hamcrest,jakartafied-projects,fansasstic-maven-plugin', threshold: hudson.model.Result.SUCCESS)
+        upstream(upstreamProjects: 'jeroensteenbeeke-parent-jakarta', threshold: hudson.model.Result.SUCCESS)
     }
 
     options {
