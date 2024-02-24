@@ -34,12 +34,6 @@ pipeline {
         }
 
         stage('Deploy') {
-            when {
-                expression {
-                    (currentBuild.result == 'SUCCESS' || currentBuild.result == null) && (env.BRANCH_NAME == 'master')
-                }
-            }
-
             steps {
                 mavenDeploy deployUser: env.MAVEN_DEPLOY_USER,
                         deployPassword: env.MAVEN_DEPLOY_PASSWORD
