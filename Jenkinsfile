@@ -29,8 +29,7 @@ pipeline {
 
         stage('Maven') {
             steps {
-                addGitMetadata folder: 'core', package: 'com.jeroensteenbeeke.hyperion'
-                sh 'mvn -B -U clean verify install -P-disable-slow-tests'
+                sh 'mvn -B -U clean verify package'
             }
         }
 
