@@ -26,10 +26,12 @@ package com.github.kklisura.java.processing.utils;
  * #L%
  */
 
+
+import org.junit.jupiter.api.Test;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import org.junit.Test;
 
 /**
  * Test for io utils.
@@ -37,20 +39,20 @@ import org.junit.Test;
  * @author Kenan Klisura
  */
 public class IoUtilsTest {
-  @Test
-  public void testCloseSilently() throws IOException {
-    IoUtils.closeSilently(null);
-    IoUtils.closeSilently(new FileWriter(File.createTempFile("props-to-constants-test", "writer")));
+	@Test
+	public void testCloseSilently() throws IOException {
+		IoUtils.closeSilently(null);
+		IoUtils.closeSilently(new FileWriter(File.createTempFile("props-to-constants-test", "writer")));
 
-    File writer = File.createTempFile("props-to-constants-test", "writer");
-    writer.delete();
+		File writer = File.createTempFile("props-to-constants-test", "writer");
+		writer.delete();
 
-    IoUtils.closeSilently(new FileWriter(writer));
+		IoUtils.closeSilently(new FileWriter(writer));
 
-    File writer2 = File.createTempFile("props-to-constants-test", "writer");
-    FileWriter fileWriter2 = new FileWriter(writer2);
-    fileWriter2.close();
+		File writer2 = File.createTempFile("props-to-constants-test", "writer");
+		FileWriter fileWriter2 = new FileWriter(writer2);
+		fileWriter2.close();
 
-    IoUtils.closeSilently(fileWriter2);
-  }
+		IoUtils.closeSilently(fileWriter2);
+	}
 }

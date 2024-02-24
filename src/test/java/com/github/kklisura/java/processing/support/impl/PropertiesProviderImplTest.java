@@ -29,9 +29,7 @@ package com.github.kklisura.java.processing.support.impl;
 import static com.github.kklisura.java.processing.utils.TestUtils.getFixtureURI;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.github.kklisura.java.processing.support.PropertiesProvider;
 import java.io.IOException;
@@ -43,19 +41,20 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.tools.FileObject;
 import javax.tools.SimpleJavaFileObject;
 import javax.tools.StandardLocation;
-import org.easymock.EasyMockRunner;
+
+import org.easymock.EasyMockExtension;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * Properties provider test.
  *
  * @author Kenan Klisura
  */
-@RunWith(EasyMockRunner.class)
+@ExtendWith(EasyMockExtension.class)
 public class PropertiesProviderImplTest extends EasyMockSupport {
   @Mock private Filer filer;
 
@@ -65,7 +64,7 @@ public class PropertiesProviderImplTest extends EasyMockSupport {
 
   private PropertiesProvider propertiesProvider;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     propertiesProvider = new PropertiesProviderImpl();
   }
@@ -91,7 +90,7 @@ public class PropertiesProviderImplTest extends EasyMockSupport {
     assertTrue(properties.containsKey("hello.world"));
   }
 
-  @Test(expected = RuntimeException.class)
+  @Test
   public void testLoadPropertiesThrowsException() throws IOException {
     FileObject simpleJavaFileObject = new ThrowableFixtureFileObject("test-properties");
 
@@ -99,7 +98,7 @@ public class PropertiesProviderImplTest extends EasyMockSupport {
     expect(filer.getResource(StandardLocation.CLASS_OUTPUT, "", "test-properties"))
         .andReturn(simpleJavaFileObject);
 
-    propertiesProvider.loadProperties("test-properties", processingEnvironment);
+    assertThrows(RuntimeException.class, () -> propertiesProvider.loadProperties("test-properties", processingEnvironment));
   }
 
   @Test

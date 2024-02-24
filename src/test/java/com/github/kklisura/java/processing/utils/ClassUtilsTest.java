@@ -26,13 +26,15 @@ package com.github.kklisura.java.processing.utils;
  * #L%
  */
 
+
+import org.junit.jupiter.api.Test;
+
 import static com.github.kklisura.java.processing.utils.TestUtils.getFixture;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import org.junit.Test;
 
 /**
  * Class utils test

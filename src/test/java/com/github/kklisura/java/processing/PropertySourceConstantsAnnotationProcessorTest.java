@@ -26,21 +26,18 @@ package com.github.kklisura.java.processing;
  * #L%
  */
 
-import static org.easymock.EasyMock.expect;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import com.github.kklisura.java.processing.annotations.PropertySourceConstants;
 import com.github.kklisura.java.processing.annotations.PropertySourceConstantsContainer;
 import com.github.kklisura.java.processing.support.ClassWriter;
 import com.github.kklisura.java.processing.support.PropertiesProvider;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Properties;
-import java.util.Set;
+import org.easymock.EasyMockExtension;
+import org.easymock.EasyMockSupport;
+import org.easymock.Mock;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -49,301 +46,310 @@ import javax.lang.model.element.Name;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic.Kind;
-import org.easymock.EasyMockRunner;
-import org.easymock.EasyMockSupport;
-import org.easymock.Mock;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import java.io.IOException;
+import java.util.*;
+
+import static org.easymock.EasyMock.expect;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Test class.
  *
  * @author Kenan Klisura
  */
-@RunWith(EasyMockRunner.class)
+@ExtendWith(EasyMockExtension.class)
 public class PropertySourceConstantsAnnotationProcessorTest extends EasyMockSupport {
-  @Mock private Messager messager;
+	@Mock
+	private Messager messager;
 
-  @Mock private TypeElement typeElement;
+	@Mock
+	private TypeElement typeElement;
 
-  @Mock private PackageElement packageElement;
+	@Mock
+	private PackageElement packageElement;
 
-  @Mock private Filer filer;
+	@Mock
+	private Filer filer;
 
-  @Mock private RoundEnvironment roundEnv;
+	@Mock
+	private RoundEnvironment roundEnv;
 
-  @Mock private ProcessingEnvironment processingEnv;
+	@Mock
+	private ProcessingEnvironment processingEnv;
 
-  @Mock private PropertySourceConstants propertySourceConstants;
+	@Mock
+	private PropertySourceConstants propertySourceConstants;
 
-  @Mock private PropertySourceConstantsContainer propertySourceConstantsContainer;
+	@Mock
+	private PropertySourceConstantsContainer propertySourceConstantsContainer;
 
-  @Mock private ClassWriter classWriter;
+	@Mock
+	private ClassWriter classWriter;
 
-  @Mock private PropertiesProvider propertiesProvider;
+	@Mock
+	private PropertiesProvider propertiesProvider;
 
-  private PropertySourceConstantsAnnotationProcessor processor;
+	private PropertySourceConstantsAnnotationProcessor processor;
 
-  @Before
-  public void setUp() {
-    processor = new PropertySourceConstantsAnnotationProcessor(classWriter, propertiesProvider);
-    processor.init(processingEnv);
-  }
+	@BeforeEach
+	public void setUp() {
+		processor = new PropertySourceConstantsAnnotationProcessor(classWriter, propertiesProvider);
+		processor.init(processingEnv);
+	}
 
-  @Test
-  public void testProcessNonProcess() {
-    expect(roundEnv.processingOver()).andReturn(true);
+	@Test
+	public void testProcessNonProcess() {
+		expect(roundEnv.processingOver()).andReturn(true);
 
-    replayAll();
+		replayAll();
 
-    assertEquals(false, processor.process(Collections.emptySet(), roundEnv));
+		assertFalse(processor.process(Collections.emptySet(), roundEnv));
 
-    verifyAll();
-    resetAll();
+		verifyAll();
+		resetAll();
 
-    expect(roundEnv.processingOver()).andReturn(false);
+		expect(roundEnv.processingOver()).andReturn(false);
 
-    replayAll();
-    assertEquals(false, processor.process(Collections.emptySet(), roundEnv));
-    verifyAll();
-  }
+		replayAll();
+		assertFalse(processor.process(Collections.emptySet(), roundEnv));
+		verifyAll();
+	}
 
-  @Test
-  public void testProcessNoAnnotations() {
-    setupProcessingEnvironment();
-    setupRoundEnvironment();
+	@Test
+	public void testProcessNoAnnotations() {
+		setupProcessingEnvironment();
+		setupRoundEnvironment();
 
-    expect(roundEnv.getElementsAnnotatedWith(PropertySourceConstants.class))
-        .andReturn(Collections.emptySet());
-    expect(roundEnv.getElementsAnnotatedWith(PropertySourceConstantsContainer.class))
-        .andReturn(Collections.emptySet());
+		expect(roundEnv.getElementsAnnotatedWith(PropertySourceConstants.class))
+				.andReturn(Collections.emptySet());
+		expect(roundEnv.getElementsAnnotatedWith(PropertySourceConstantsContainer.class))
+				.andReturn(Collections.emptySet());
 
-    replayAll();
+		replayAll();
 
-    assertEquals(false, processor.process(annotationsSet(), roundEnv));
+		assertFalse(processor.process(annotationsSet(), roundEnv));
 
-    verifyAll();
-  }
+		verifyAll();
+	}
 
-  @Test
-  @SuppressWarnings("unchecked")
-  public void testProcessPropertySourceConstantsAnnotation() throws IOException {
-    setupProcessingEnvironment();
-    setupRoundEnvironment();
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testProcessPropertySourceConstantsAnnotation() throws IOException {
+		setupProcessingEnvironment();
+		setupRoundEnvironment();
 
-    setupPackageElement("com.github.kklisura");
+		setupPackageElement("com.github.kklisura");
 
-    expect(roundEnv.getElementsAnnotatedWith(PropertySourceConstants.class))
-        .andReturn(elementSet());
+		expect(roundEnv.getElementsAnnotatedWith(PropertySourceConstants.class))
+				.andReturn(elementSet());
 
-    expect(roundEnv.getElementsAnnotatedWith(PropertySourceConstantsContainer.class))
-        .andReturn(Collections.emptySet());
+		expect(roundEnv.getElementsAnnotatedWith(PropertySourceConstantsContainer.class))
+				.andReturn(Collections.emptySet());
 
-    expect(typeElement.getAnnotationsByType(PropertySourceConstants.class))
-        .andReturn(new PropertySourceConstants[] {propertySourceConstants});
+		expect(typeElement.getAnnotationsByType(PropertySourceConstants.class))
+				.andReturn(new PropertySourceConstants[]{propertySourceConstants});
 
-    expect(propertySourceConstants.resourceName())
-        .andReturn("my-properties-file.properties")
-        .times(2);
-    expect(propertySourceConstants.className()).andReturn("MyTestClass").times(2);
-    expect(propertySourceConstants.stripPrefix()).andReturn(null).times(1);
+		expect(propertySourceConstants.resourceName())
+				.andReturn("my-properties-file.properties")
+				.times(2);
+		expect(propertySourceConstants.className()).andReturn("MyTestClass").times(2);
+		expect(propertySourceConstants.stripPrefix()).andReturn(null).times(1);
 
-    Properties properties = new Properties();
-    properties.setProperty("test", "hello");
-    properties.setProperty("test.me", "hello.world");
+		Properties properties = new Properties();
+		properties.setProperty("test", "hello");
+		properties.setProperty("test.me", "hello.world");
 
-    expect(propertiesProvider.loadProperties("my-properties-file.properties", processingEnv))
-        .andReturn(properties);
+		expect(propertiesProvider.loadProperties("my-properties-file.properties", processingEnv))
+				.andReturn(properties);
 
-    expect(processingEnv.getMessager()).andReturn(messager);
-    messager.printMessage(Kind.OTHER, "Generated MyTestClass for my-properties-file.properties");
+		expect(processingEnv.getMessager()).andReturn(messager);
+		messager.printMessage(Kind.OTHER, "Generated MyTestClass for my-properties-file.properties");
 
-    classWriter.writeClass(
-        "com.github.kklisura", "MyTestClass", set("test.me", "test"), processingEnv);
+		classWriter.writeClass(
+				"com.github.kklisura", "MyTestClass", set("test.me", "test"), processingEnv);
 
-    replayAll();
+		replayAll();
 
-    assertEquals(false, processor.process(annotationsSet(), roundEnv));
+		assertFalse(processor.process(annotationsSet(), roundEnv));
 
-    verifyAll();
-  }
+		verifyAll();
+	}
 
-  @Test
-  @SuppressWarnings("unchecked")
-  public void testProcessPropertySourceConstantsAnnotationWithStrippedKeys() throws IOException {
-    setupProcessingEnvironment();
-    setupRoundEnvironment();
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testProcessPropertySourceConstantsAnnotationWithStrippedKeys() throws IOException {
+		setupProcessingEnvironment();
+		setupRoundEnvironment();
 
-    setupPackageElement("com.github.kklisura");
+		setupPackageElement("com.github.kklisura");
 
-    expect(roundEnv.getElementsAnnotatedWith(PropertySourceConstants.class))
-        .andReturn(elementSet());
+		expect(roundEnv.getElementsAnnotatedWith(PropertySourceConstants.class))
+				.andReturn(elementSet());
 
-    expect(roundEnv.getElementsAnnotatedWith(PropertySourceConstantsContainer.class))
-        .andReturn(Collections.emptySet());
+		expect(roundEnv.getElementsAnnotatedWith(PropertySourceConstantsContainer.class))
+				.andReturn(Collections.emptySet());
 
-    expect(typeElement.getAnnotationsByType(PropertySourceConstants.class))
-        .andReturn(new PropertySourceConstants[] {propertySourceConstants});
+		expect(typeElement.getAnnotationsByType(PropertySourceConstants.class))
+				.andReturn(new PropertySourceConstants[]{propertySourceConstants});
 
-    expect(propertySourceConstants.resourceName())
-        .andReturn("my-properties-file.properties")
-        .times(2);
-    expect(propertySourceConstants.className()).andReturn("MyTestClass").times(2);
-    expect(propertySourceConstants.stripPrefix()).andReturn("test").times(1);
+		expect(propertySourceConstants.resourceName())
+				.andReturn("my-properties-file.properties")
+				.times(2);
+		expect(propertySourceConstants.className()).andReturn("MyTestClass").times(2);
+		expect(propertySourceConstants.stripPrefix()).andReturn("test").times(1);
 
-    Properties properties = new Properties();
-    properties.setProperty("test", "hello");
-    properties.setProperty("test.me", "hello.world");
+		Properties properties = new Properties();
+		properties.setProperty("test", "hello");
+		properties.setProperty("test.me", "hello.world");
 
-    expect(propertiesProvider.loadProperties("my-properties-file.properties", processingEnv))
-        .andReturn(properties);
+		expect(propertiesProvider.loadProperties("my-properties-file.properties", processingEnv))
+				.andReturn(properties);
 
-    expect(processingEnv.getMessager()).andReturn(messager);
-    messager.printMessage(Kind.OTHER, "Generated MyTestClass for my-properties-file.properties");
+		expect(processingEnv.getMessager()).andReturn(messager);
+		messager.printMessage(Kind.OTHER, "Generated MyTestClass for my-properties-file.properties");
 
-    classWriter.writeClass("com.github.kklisura", "MyTestClass", set("me"), processingEnv);
+		classWriter.writeClass("com.github.kklisura", "MyTestClass", set("me"), processingEnv);
 
-    replayAll();
+		replayAll();
 
-    assertEquals(false, processor.process(annotationsSet(), roundEnv));
+		assertFalse(processor.process(annotationsSet(), roundEnv));
 
-    verifyAll();
-  }
+		verifyAll();
+	}
 
-  @Test
-  @SuppressWarnings("unchecked")
-  public void testProcessPropertySourceConstantsAnnotationWithException() throws IOException {
-    setupProcessingEnvironment();
-    setupRoundEnvironment();
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testProcessPropertySourceConstantsAnnotationWithException() throws IOException {
+		setupProcessingEnvironment();
+		setupRoundEnvironment();
 
-    setupPackageElement("com.github.kklisura");
+		setupPackageElement("com.github.kklisura");
 
-    expect(roundEnv.getElementsAnnotatedWith(PropertySourceConstants.class))
-        .andReturn(elementSet());
+		expect(roundEnv.getElementsAnnotatedWith(PropertySourceConstants.class))
+				.andReturn(elementSet());
 
-    expect(typeElement.getAnnotationsByType(PropertySourceConstants.class))
-        .andReturn(new PropertySourceConstants[] {propertySourceConstants});
+		expect(typeElement.getAnnotationsByType(PropertySourceConstants.class))
+				.andReturn(new PropertySourceConstants[]{propertySourceConstants});
 
-    expect(propertySourceConstants.resourceName())
-        .andReturn("my-properties-file.properties")
-        .times(2);
+		expect(propertySourceConstants.resourceName())
+				.andReturn("my-properties-file.properties")
+				.times(2);
 
-    expect(propertiesProvider.loadProperties("my-properties-file.properties", processingEnv))
-        .andThrow(new IOException("exception message"));
+		expect(propertiesProvider.loadProperties("my-properties-file.properties", processingEnv))
+				.andThrow(new IOException("exception message"));
 
-    expect(processingEnv.getMessager()).andReturn(messager);
-    messager.printMessage(Kind.ERROR, "exception message");
+		expect(processingEnv.getMessager()).andReturn(messager);
+		messager.printMessage(Kind.ERROR, "exception message");
 
-    replayAll();
+		replayAll();
 
-    try {
-      assertEquals(false, processor.process(annotationsSet(), roundEnv));
-      fail();
-    } catch (RuntimeException e) {
-      assertTrue(e.getCause() instanceof IOException);
-    }
+		try {
+			assertFalse(processor.process(annotationsSet(), roundEnv));
+			fail();
+		} catch (RuntimeException e) {
+			assertInstanceOf(IOException.class, e.getCause());
+		}
 
-    verifyAll();
-  }
+		verifyAll();
+	}
 
-  @Test
-  @SuppressWarnings("unchecked")
-  public void testProcessPropertySourceConstantsContainerAnnotation() throws IOException {
-    setupProcessingEnvironment();
-    setupRoundEnvironment();
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testProcessPropertySourceConstantsContainerAnnotation() throws IOException {
+		setupProcessingEnvironment();
+		setupRoundEnvironment();
 
-    setupPackageElement("com.github.kklisura");
+		setupPackageElement("com.github.kklisura");
 
-    expect(roundEnv.getElementsAnnotatedWith(PropertySourceConstants.class))
-        .andReturn(Collections.emptySet());
+		expect(roundEnv.getElementsAnnotatedWith(PropertySourceConstants.class))
+				.andReturn(Collections.emptySet());
 
-    expect(roundEnv.getElementsAnnotatedWith(PropertySourceConstantsContainer.class))
-        .andReturn(elementSet());
+		expect(roundEnv.getElementsAnnotatedWith(PropertySourceConstantsContainer.class))
+				.andReturn(elementSet());
 
-    expect(typeElement.getAnnotationsByType(PropertySourceConstantsContainer.class))
-        .andReturn(new PropertySourceConstantsContainer[] {propertySourceConstantsContainer});
+		expect(typeElement.getAnnotationsByType(PropertySourceConstantsContainer.class))
+				.andReturn(new PropertySourceConstantsContainer[]{propertySourceConstantsContainer});
 
-    expect(propertySourceConstantsContainer.value())
-        .andReturn(new PropertySourceConstants[] {propertySourceConstants});
+		expect(propertySourceConstantsContainer.value())
+				.andReturn(new PropertySourceConstants[]{propertySourceConstants});
 
-    expect(propertySourceConstants.resourceName())
-        .andReturn("my-properties-file.properties")
-        .times(2);
-    expect(propertySourceConstants.className()).andReturn("MyTestClass").times(2);
-    expect(propertySourceConstants.stripPrefix()).andReturn(null).times(1);
+		expect(propertySourceConstants.resourceName())
+				.andReturn("my-properties-file.properties")
+				.times(2);
+		expect(propertySourceConstants.className()).andReturn("MyTestClass").times(2);
+		expect(propertySourceConstants.stripPrefix()).andReturn(null).times(1);
 
-    Properties properties = new Properties();
-    properties.setProperty("test", "hello");
-    properties.setProperty("test.me", "hello.world");
+		Properties properties = new Properties();
+		properties.setProperty("test", "hello");
+		properties.setProperty("test.me", "hello.world");
 
-    expect(propertiesProvider.loadProperties("my-properties-file.properties", processingEnv))
-        .andReturn(properties);
+		expect(propertiesProvider.loadProperties("my-properties-file.properties", processingEnv))
+				.andReturn(properties);
 
-    expect(processingEnv.getMessager()).andReturn(messager);
-    messager.printMessage(Kind.OTHER, "Generated MyTestClass for my-properties-file.properties");
+		expect(processingEnv.getMessager()).andReturn(messager);
+		messager.printMessage(Kind.OTHER, "Generated MyTestClass for my-properties-file.properties");
 
-    classWriter.writeClass(
-        "com.github.kklisura", "MyTestClass", set("test.me", "test"), processingEnv);
+		classWriter.writeClass(
+				"com.github.kklisura", "MyTestClass", set("test.me", "test"), processingEnv);
 
-    replayAll();
+		replayAll();
 
-    assertEquals(false, processor.process(annotationsSet(), roundEnv));
+		assertFalse(processor.process(annotationsSet(), roundEnv));
 
-    verifyAll();
-  }
+		verifyAll();
+	}
 
-  public void setupProcessingEnvironment() {
-    expect(processingEnv.getMessager()).andReturn(messager);
-    messager.printMessage(Kind.NOTE, "PropertySourceConstants annotation processor");
-  }
+	public void setupProcessingEnvironment() {
+		expect(processingEnv.getMessager()).andReturn(messager);
+		messager.printMessage(Kind.NOTE, "PropertySourceConstants annotation processor");
+	}
 
-  public void setupRoundEnvironment() {
-    expect(roundEnv.processingOver()).andReturn(false);
-  }
+	public void setupRoundEnvironment() {
+		expect(roundEnv.processingOver()).andReturn(false);
+	}
 
-  public void setupPackageElement(String packageName) {
-    expect(typeElement.getEnclosingElement()).andReturn(packageElement);
+	public void setupPackageElement(String packageName) {
+		expect(typeElement.getEnclosingElement()).andReturn(packageElement);
 
-    expect(packageElement.getQualifiedName())
-        .andReturn(
-            new Name() {
-              @Override
-              public String toString() {
-                return packageName;
-              }
+		expect(packageElement.getQualifiedName())
+				.andReturn(
+						new Name() {
+							@Override
+							public String toString() {
+								return packageName;
+							}
 
-              @Override
-              public boolean contentEquals(CharSequence cs) {
-                return false;
-              }
+							@Override
+							public boolean contentEquals(CharSequence cs) {
+								return false;
+							}
 
-              @Override
-              public int length() {
-                return 0;
-              }
+							@Override
+							public int length() {
+								return 0;
+							}
 
-              @Override
-              public char charAt(int index) {
-                return 0;
-              }
+							@Override
+							public char charAt(int index) {
+								return 0;
+							}
 
-              @Override
-              public CharSequence subSequence(int start, int end) {
-                return null;
-              }
-            });
-  }
+							@Override
+							public CharSequence subSequence(int start, int end) {
+								return null;
+							}
+						});
+	}
 
-  public Set<? extends TypeElement> annotationsSet() {
-    return Collections.singleton(typeElement);
-  }
+	public Set<? extends TypeElement> annotationsSet() {
+		return Collections.singleton(typeElement);
+	}
 
-  public Set elementSet() {
-    return Collections.singleton(typeElement);
-  }
+	public Set elementSet() {
+		return Collections.singleton(typeElement);
+	}
 
-  private static Set<String> set(String... items) {
-    return new LinkedHashSet<>(Arrays.asList(items));
-  }
+	private static Set<String> set(String... items) {
+		return new LinkedHashSet<>(Arrays.asList(items));
+	}
 }

@@ -26,71 +26,75 @@ package com.github.kklisura.java.processing.support.impl;
  * #L%
  */
 
-import static com.github.kklisura.java.processing.utils.TestUtils.getFixture;
-import static com.github.kklisura.java.processing.utils.TestUtils.readFile;
-import static org.easymock.EasyMock.expect;
-import static org.junit.Assert.assertEquals;
-
 import com.github.kklisura.java.processing.support.ClassWriter;
+import org.easymock.EasyMockExtension;
+import org.easymock.EasyMockSupport;
+import org.easymock.Mock;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import javax.annotation.processing.Filer;
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.tools.JavaFileObject;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import javax.annotation.processing.Filer;
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.tools.JavaFileObject;
-import org.easymock.EasyMockRunner;
-import org.easymock.EasyMockSupport;
-import org.easymock.Mock;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+
+import static com.github.kklisura.java.processing.utils.TestUtils.getFixture;
+import static com.github.kklisura.java.processing.utils.TestUtils.readFile;
+import static org.easymock.EasyMock.expect;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Created by Kenan Klisura on 12/06/2018.
  *
  * @author Kenan Klisura
  */
-@RunWith(EasyMockRunner.class)
+@ExtendWith(EasyMockExtension.class)
 public class ClassWriterImplTest extends EasyMockSupport {
-  @Mock private ProcessingEnvironment processingEnvironment;
+	@Mock
+	private ProcessingEnvironment processingEnvironment;
 
-  @Mock private Filer filer;
+	@Mock
+	private Filer filer;
 
-  @Mock private JavaFileObject javaFileObject;
+	@Mock
+	private JavaFileObject javaFileObject;
 
-  private ClassWriter classWriter;
+	private ClassWriter classWriter;
 
-  @Before
-  public void setUp() throws Exception {
-    classWriter = new ClassWriterImpl();
-  }
+	@BeforeEach
+	public void setUp() throws Exception {
+		classWriter = new ClassWriterImpl();
+	}
 
-  @Test
-  public void testWriteClass() throws IOException {
-    File tmpFile = File.createTempFile("props-to-constants-generator-test", "java");
-    FileWriter fileWriter = new FileWriter(tmpFile);
+	@Test
+	public void testWriteClass() throws IOException {
+		File tmpFile = File.createTempFile("props-to-constants-generator-test", "java");
+		FileWriter fileWriter = new FileWriter(tmpFile);
 
-    expect(processingEnvironment.getFiler()).andReturn(filer);
-    expect(filer.createSourceFile("com.github.kklisura.test.TestClass")).andReturn(javaFileObject);
-    expect(javaFileObject.openWriter()).andReturn(fileWriter);
+		expect(processingEnvironment.getFiler()).andReturn(filer);
+		expect(filer.createSourceFile("com.github.kklisura.test.TestClass")).andReturn(javaFileObject);
+		expect(javaFileObject.openWriter()).andReturn(fileWriter);
 
-    replayAll();
+		replayAll();
 
-    classWriter.writeClass(
-        "com.github.kklisura.test",
-        "TestClass",
-        set("my.property.1", "my.property.2"),
-        processingEnvironment);
+		classWriter.writeClass(
+				"com.github.kklisura.test",
+				"TestClass",
+				set("my.property.1", "my.property.2"),
+				processingEnvironment);
 
-    verifyAll();
+		verifyAll();
 
-    assertEquals(getFixture("test-class-2-java"), readFile(tmpFile));
-  }
+		assertEquals(getFixture("test-class-2-java"), readFile(tmpFile));
+	}
 
-  private static Set<String> set(String... items) {
-    return new LinkedHashSet<>(Arrays.asList(items));
-  }
+	private static Set<String> set(String... items) {
+		return new LinkedHashSet<>(Arrays.asList(items));
+	}
 }
